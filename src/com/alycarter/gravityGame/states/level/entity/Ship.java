@@ -1,54 +1,82 @@
 package com.alycarter.gravityGame.states.level.entity;
 
 import java.awt.Graphics;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 
-import com.alycarter.crabClawEngine.Game;
 import com.alycarter.gravityGame.states.level.Level;
 
 public class Ship extends Entity {
-	private Game game;
-	private double targetDirectionOffset =0;
-	public Ship(Game game, Level level, Double location, Double velocity,
-			double width) {
+	
+	private double targetOffset =0;
+	private double currentOffset = 0;
+	private boolean burning=false;
+	private double thrust=0;
+	public Ship(Level level, Double location, Double velocity, double width) {
 		super(level, location, velocity, width, false,true);
-		this.game = game;
 	}
 
 	@Override
 	public void onUpdate() {
-		if(game.getControls().isPressed(KeyEvent.VK_G)){
-			turnPrograde();
-			velocity.x+=angleAsVector(direction).x*level.getWorldDeltaTime();
-			velocity.y+=angleAsVector(direction).y*level.getWorldDeltaTime();
+		direction=vectorAsAngle(velocity)+currentOffset;
+		double turnRate = level.getWorldDeltaTime()*360;
+		if(Math.abs(targetOffset-currentOffset)<turnRate){
+			currentOffset=targetOffset;
+		}else{
+			if(targetOffset>currentOffset){
+				currentOffset+=turnRate;
+			}else{
+				if(targetOffset<currentOffset){
+					currentOffset-=turnRate;
+				}
+			}
 		}
-		if(game.getControls().isPressed(KeyEvent.VK_H)){
-			turnRetrograde();
-			velocity.x+=angleAsVector(direction).x*level.getWorldDeltaTime();
-			velocity.y+=angleAsVector(direction).y*level.getWorldDeltaTime();
+		if(burning){
+			thrust+=level.getWorldDeltaTime()*5;
+			if(thrust>1){
+				thrust=1;
+			}
+			velocity.x+=Entity.angleAsVector(direction).x*level.getWorldDeltaTime()*thrust;
+			velocity.y+=Entity.angleAsVector(direction).y*level.getWorldDeltaTime()*thrust;
+		}else{
+			thrust =0;
+		}
+		burning = false;
+		for(int i=0;i<level.planets.size();i++){
+			Planet p = level.planets.get(i);
+			if(location.distance(p.location)<p.width/2){
+				level.entities.remove(this);
+				level.ships.remove(this);
+			}
 		}
 	}
 	
 	public void turnPrograde(){
-		direction=vectorAsAngle(velocity);
+		targetOffset=0;
 	}
 	
 	public void turnRetrograde(){
-		direction=180+vectorAsAngle(velocity);
+		targetOffset=180;
+	}
+	
+	public void burn(){
+		if(currentOffset==targetOffset){
+			burning = true;
+		}
 	}
 
 	@Override
 	public void onRender(Graphics g) {
-		Point2D.Double lastLocation = location;
-		Entity e=this;
-		double timeStep =game.getDeltaTime();
-		for(int i=0;i<20/timeStep;i++){
-			e =simulateLocationAfterTime(e, timeStep);
-			g.drawLine((int)(lastLocation.x*Level.unitResolution), (int)(lastLocation.y*Level.unitResolution),
-					(int)(e.location.x*Level.unitResolution), (int)(e.location.y*Level.unitResolution));
-			lastLocation= new Point2D.Double(e.location.x, e.location.y);
+		if(level.selectedShip==this){
+			Point2D.Double lastLocation = location;
+			Entity e=this;
+			double timeStep =0.004;
+			for(int i=0;i<10/timeStep;i++){
+				e =simulateLocationAfterTime(e, timeStep);
+				g.drawLine((int)(lastLocation.x*Level.unitResolution)-level.getOffset().x, (int)(lastLocation.y*Level.unitResolution)-level.getOffset().y,
+						(int)(e.location.x*Level.unitResolution)-level.getOffset().x, (int)(e.location.y*Level.unitResolution)-level.getOffset().y);
+				lastLocation= new Point2D.Double(e.location.x, e.location.y);
+			}
 		}
 	}
 

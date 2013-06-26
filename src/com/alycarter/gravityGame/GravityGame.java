@@ -22,13 +22,15 @@ public class GravityGame extends Game{
 	@Override
 	public void onRender(Graphics g) {
 		g.setColor(Color.BLACK);
+		
 		g.drawString(String.valueOf(getFramesLastSecond()), 0, 10);
+		g.drawString(String.valueOf(getUpdatesLastSecond()), 0, 30);
 	}
 
 
 	@Override
 	public void onInitialize() {
-		setFrameLimit(1000);
+		setFrameLimit(60);
 		stateMachine.push(new Level(this));	
 	}
 
