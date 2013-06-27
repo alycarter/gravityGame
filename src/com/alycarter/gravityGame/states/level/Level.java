@@ -18,36 +18,36 @@ public class Level implements State{
 	private Game game;
 	
 	public ArrayList<Entity> entities = new ArrayList<Entity>();
-	public ArrayList<Ship> ships = new ArrayList<Ship>();
-	public ArrayList<Planet> planets = new ArrayList<Planet>();
-	public Ship selectedShip =null;
+	public Integer selectedShip= null;
 	
 	public static double unitResolution =128;
 	public Point2D.Double cameraLocation = new Point2D.Double(4, 3);
 	
+	public Player player;
+	public boolean host = false;
+	
 	public Level(Game game) {
 		this.game=game;
-		addPlanet(new Planet(this, new Point2D.Double(3, 3), 1));
-		addPlanet(new Planet(this, new Point2D.Double(8, 3), 1));
-		addShip(new Ship(this, new Point2D.Double(2, 3), new Point2D.Double(0, 1), 0.2));
-		addShip(new Ship(this, new Point2D.Double(7, 3), new Point2D.Double(0, 1), 0.2));
-	}
-	
-	public void addShip(Ship s){
-		ships.add(s);
-		entities.add(s);
-		if(selectedShip== null){
-			selectedShip=s;
+		player=new Player(this, game);
+		if(host){
+			entities.add(new Planet(this, new Point2D.Double(3, 3), 1));
+			entities.add(new Planet(this, new Point2D.Double(8, 3), 1));
+			entities.add(new Ship(this, new Point2D.Double(2, 3), new Point2D.Double(0, 1), 0.2));
+			entities.add(new Ship(this, new Point2D.Double(7, 3), new Point2D.Double(0, 1), 0.2));
 		}
 	}
 	
-	public void addPlanet(Planet p){
-		planets.add(p);
-		entities.add(p);
+	public void sendCommand(int id, int command){
+		for(int i=0;i<entities.size();i++){
+			if(entities.get(i).id==id){
+				entities.get(i).giveCommand(command);
+			}
+		}
 	}
 
 	@Override
 	public void update() {
+		player.update();
 		double xm=0;
 		double ym=0;
 		if(game.getControls().isPressed(KeyEvent.VK_RIGHT)){
@@ -68,11 +68,13 @@ public class Level implements State{
 			selectedShip=null;
 			double x = (game.getControls().mouseLocation.x+getOffset().x)/Level.unitResolution;
 			double y = (game.getControls().mouseLocation.y+getOffset().y)/Level.unitResolution;
-			for(int i=0;i< ships.size();i++){
-				double dx = x-ships.get(i).location.x;
-				double dy = y-ships.get(i).location.y;
-				if(Math.abs(ships.get(i).width/2)>Math.sqrt(Math.pow(dx, 2)+Math.pow(dy, 2))){
-					selectedShip=ships.get(i);
+			for(int i=0;i< entities.size();i++){
+				if(entities.get(i).entityType.equals(Entity.SHIP)){
+					double dx = x-entities.get(i).location.x;
+					double dy = y-entities.get(i).location.y;
+					if(Math.abs(entities.get(i).width/2)>Math.sqrt(Math.pow(dx, 2)+Math.pow(dy, 2))){
+						selectedShip=entities.get(i).id;
+					}
 				}
 			}
 		}
@@ -81,17 +83,6 @@ public class Level implements State{
 		}
 		if(game.getControls().isPressed(KeyEvent.VK_EQUALS)){
 			unitResolution+=50*game.getDeltaTime();
-		}
-		if(selectedShip !=null){
-			if(game.getControls().isPressed(KeyEvent.VK_G)){
-				selectedShip.turnPrograde();
-			}
-			if(game.getControls().isPressed(KeyEvent.VK_H)){
-				selectedShip.turnRetrograde();
-			}
-			if(game.getControls().isPressed(KeyEvent.VK_SPACE)){
-				selectedShip.burn();
-			}
 		}
 		for(int i=0;i<entities.size();i++){
 			entities.get(i).update();
@@ -105,6 +96,10 @@ public class Level implements State{
 		g.fillRect(0, 0, game.getResolutionWidth(), game.getResolutionHeight());
 		for(int i=0;i<entities.size();i++){
 			entities.get(i).render(g2,getOffset());
+		}
+		g.setColor(Color.BLACK);
+		if(host){
+			g.drawString("host", 0, 50);
 		}
 	}
 	

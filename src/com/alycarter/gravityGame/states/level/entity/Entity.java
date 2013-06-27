@@ -7,18 +7,31 @@ import java.awt.geom.Point2D;
 
 import com.alycarter.gravityGame.states.level.Level;
 
-public abstract class Entity{
+public abstract class Entity implements java.io.Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	public Point2D.Double location;
 	public Point2D.Double velocity;
 	public double width;
 	public double gravity;
 	public boolean gravityEffects;
-	public Level level;
+	public transient Level level;
 	public double direction;
+	public String entityType;
+	public int id;
+	public static int nextID=0;
 	
-	public Entity(Level level, Point2D.Double location, Point2D.Double velocity, double width, boolean hasGravity, boolean gravityEffects) {
+	public static final String SHIP = "ship";
+	public static final String PLANET = "planet";
+	
+	public Entity(String entityType,Level level, Point2D.Double location, Point2D.Double velocity, double width, boolean hasGravity, boolean gravityEffects) {
 		this.level=level;
+		id=nextID;
+		nextID++;
 		this.location=location;
 		this.velocity= velocity;
 		this.gravityEffects = gravityEffects;
@@ -29,7 +42,10 @@ public abstract class Entity{
 		}else{
 			gravity=0;
 		}
+		this.entityType=entityType;
 	}
+	
+	public abstract void giveCommand(int command);
 
 	public void update() {
 		if(gravityEffects){
@@ -85,14 +101,15 @@ public abstract class Entity{
 	}
 	
 	public static Entity simulateLocationAfterTime(Entity e, double t){
-		Entity s = new Entity(e.level,new Point2D.Double(e.location.x, e.location.y),
+		Entity s = new Entity("",e.level,new Point2D.Double(e.location.x, e.location.y),
 				new Point2D.Double(e.velocity.x, e.velocity.y),e.width,false,e.gravityEffects) {
-			
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onUpdate() {}
-			
 			@Override
 			public void onRender(Graphics g) {}
+			@Override
+			public void giveCommand(int command) {}
 		};
 		if(s.gravityEffects){
 			for(int i=0;i<s.level.entities.size();i++){
