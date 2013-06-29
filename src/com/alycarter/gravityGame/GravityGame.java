@@ -9,7 +9,7 @@ import com.alycarter.gravityGame.states.level.Level;
 public class GravityGame extends Game{
 	
 	public GravityGame() {
-		super("gravity game", 480, 360);
+		super("gravity game", 1280, 720);
 		
 	}
 

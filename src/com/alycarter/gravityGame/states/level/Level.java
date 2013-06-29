@@ -30,10 +30,10 @@ public class Level implements State{
 		this.game=game;
 		player=new Player(this, game);
 		if(host){
-			entities.add(new Planet(this, new Point2D.Double(3, 3), 1));
-			entities.add(new Planet(this, new Point2D.Double(8, 3), 1));
-			entities.add(new Ship(this, new Point2D.Double(2, 3), new Point2D.Double(0, 1), 0.2));
-			entities.add(new Ship(this, new Point2D.Double(7, 3), new Point2D.Double(0, 1), 0.2));
+			entities.add(new Planet(new Point2D.Double(3, 3), 1));
+			entities.add(new Planet(new Point2D.Double(8, 3), 1));
+			entities.add(new Ship(1,new Point2D.Double(2, 3), new Point2D.Double(0, 1), 0.2));
+			entities.add(new Ship(2,new Point2D.Double(7, 3), new Point2D.Double(0, 1), 0.2));
 		}
 	}
 	
@@ -69,7 +69,7 @@ public class Level implements State{
 			double x = (game.getControls().mouseLocation.x+getOffset().x)/Level.unitResolution;
 			double y = (game.getControls().mouseLocation.y+getOffset().y)/Level.unitResolution;
 			for(int i=0;i< entities.size();i++){
-				if(entities.get(i).entityType.equals(Entity.SHIP)){
+				if(entities.get(i).entityType.equals(Entity.SHIP)&&entities.get(i).team==player.team){
 					double dx = x-entities.get(i).location.x;
 					double dy = y-entities.get(i).location.y;
 					if(Math.abs(entities.get(i).width/2)>Math.sqrt(Math.pow(dx, 2)+Math.pow(dy, 2))){
@@ -85,7 +85,7 @@ public class Level implements State{
 			unitResolution+=50*game.getDeltaTime();
 		}
 		for(int i=0;i<entities.size();i++){
-			entities.get(i).update();
+			entities.get(i).update(this);
 		}
 	}
 
@@ -95,7 +95,7 @@ public class Level implements State{
 		g.setColor(Color.white);
 		g.fillRect(0, 0, game.getResolutionWidth(), game.getResolutionHeight());
 		for(int i=0;i<entities.size();i++){
-			entities.get(i).render(g2,getOffset());
+			entities.get(i).render(g2, this, getOffset());
 		}
 		g.setColor(Color.BLACK);
 		if(host){

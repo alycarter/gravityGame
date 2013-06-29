@@ -25,12 +25,13 @@ public class Ship extends Entity implements Serializable{
 	public static final int BURN=3;
 	public static final int STOPBURN=2;
 	
-	public Ship(Level level, Double location, Double velocity, double width) {
-		super(Entity.SHIP,level, location, velocity, width, false,true);
+	public Ship(int team, Double location, Double velocity, double width) {
+		super(Entity.SHIP, location, velocity, width, false,true);
+		this.team=team;
 	}
 
 	@Override
-	public void onUpdate() {
+	public void onUpdate(Level level) {
 		direction=vectorAsAngle(velocity)+currentOffset;
 		double turnRate = level.getWorldDeltaTime()*360;
 		if(Math.abs(targetOffset-currentOffset)<turnRate){
@@ -80,7 +81,7 @@ public class Ship extends Entity implements Serializable{
 	}
 
 	@Override
-	public void onRender(Graphics g) {
+	public void onRender(Graphics g, Level level) {
 		if(level.selectedShip!=null){
 			if(level.selectedShip.intValue()==id){
 				Point2D.Double lastLocation = location;
@@ -93,7 +94,7 @@ public class Ship extends Entity implements Serializable{
 				int i=0;
 				g.setColor(new Color(0, 0, 255));
 				while(i<20/timeStep&&angle<360){
-					e =simulateLocationAfterTime(e, timeStep);
+					e =simulateLocationAfterTime(e,level, timeStep);
 					angle+= Math.abs(Math.abs(vectorAsAngle(e.velocity))-Math.abs(vectorAsAngle(lastVelocity)));
 					g.drawLine((int)(lastLocation.x*Level.unitResolution)-level.getOffset().x, (int)(lastLocation.y*Level.unitResolution)-level.getOffset().y,
 							(int)(e.location.x*Level.unitResolution)-level.getOffset().x, (int)(e.location.y*Level.unitResolution)-level.getOffset().y);

@@ -19,17 +19,16 @@ public abstract class Entity implements java.io.Serializable{
 	public double width;
 	public double gravity;
 	public boolean gravityEffects;
-	public transient Level level;
 	public double direction;
 	public String entityType;
 	public int id;
 	public static int nextID=0;
+	public int team=0;
 	
 	public static final String SHIP = "ship";
 	public static final String PLANET = "planet";
 	
-	public Entity(String entityType,Level level, Point2D.Double location, Point2D.Double velocity, double width, boolean hasGravity, boolean gravityEffects) {
-		this.level=level;
+	public Entity(String entityType, Point2D.Double location, Point2D.Double velocity, double width, boolean hasGravity, boolean gravityEffects) {
 		id=nextID;
 		nextID++;
 		this.location=location;
@@ -47,7 +46,7 @@ public abstract class Entity implements java.io.Serializable{
 	
 	public abstract void giveCommand(int command);
 
-	public void update() {
+	public void update(Level level) {
 		if(gravityEffects){
 			for(int i=0;i<level.entities.size();i++){
 				if(level.entities.get(i)!=this){
@@ -59,10 +58,10 @@ public abstract class Entity implements java.io.Serializable{
 		}
 		location.x+=velocity.x*level.getWorldDeltaTime();
 		location.y+=velocity.y*level.getWorldDeltaTime();
-		onUpdate();
+		onUpdate(level);
 	}
 	
-	public abstract void onUpdate();
+	public abstract void onUpdate(Level level);
 
 	public Point2D.Double getGravitationalEffect(Entity e){
 		double dx = location.x-e.location.x;
@@ -90,30 +89,30 @@ public abstract class Entity implements java.io.Serializable{
 		return new Point2D.Double(xd,yd);
 	}
 
-	public void render(Graphics g, Point offset) {
+	public void render(Graphics g, Level level,Point offset) {
 		g.setColor(Color.BLACK);
 		g.drawOval((int)((Level.unitResolution*(location.x-(width/2)))-offset.x ), (int)(Level.unitResolution*(location.y-(width/2)))-offset.y,
 				(int)(Level.unitResolution*width), (int)(Level.unitResolution*width));
 		g.drawLine((int)(Level.unitResolution*location.x)-offset.x, (int)(Level.unitResolution*location.y)-offset.y,
 				(int)(Level.unitResolution*(location.x+(angleAsVector(direction).x*width/2)))-offset.x,
 				(int)(Level.unitResolution*(location.y+(angleAsVector(direction).y*width/2)))-offset.y);
-		onRender(g);
+		onRender(g,level);
 	}
 	
-	public static Entity simulateLocationAfterTime(Entity e, double t){
-		Entity s = new Entity("",e.level,new Point2D.Double(e.location.x, e.location.y),
+	public static Entity simulateLocationAfterTime(Entity e,Level level, double t){
+		Entity s = new Entity("",new Point2D.Double(e.location.x, e.location.y),
 				new Point2D.Double(e.velocity.x, e.velocity.y),e.width,false,e.gravityEffects) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public void onUpdate() {}
+			public void onUpdate(Level level) {}
 			@Override
-			public void onRender(Graphics g) {}
+			public void onRender(Graphics g,Level level) {}
 			@Override
 			public void giveCommand(int command) {}
 		};
 		if(s.gravityEffects){
-			for(int i=0;i<s.level.entities.size();i++){
-				Point2D.Double gravity = s.level.entities.get(i).getGravitationalEffect(s);
+			for(int i=0;i<level.entities.size();i++){
+				Point2D.Double gravity = level.entities.get(i).getGravitationalEffect(s);
 				s.velocity.x+=gravity.x*t;
 				s.velocity.y+=gravity.y*t;
 			}
@@ -124,6 +123,6 @@ public abstract class Entity implements java.io.Serializable{
 		
 	}
 	
-	public abstract void onRender(Graphics g);
+	public abstract void onRender(Graphics g,Level level);
 
 }

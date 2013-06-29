@@ -15,17 +15,17 @@ public class Planet extends Entity {
 	
 	private double rotation = (Math.random()*180)-90;
 	
-	public Planet(Level level, Double location, double width) {
-		super(Entity.PLANET,level, location, new Point2D.Double(0, 0), width, true, false);
+	public Planet(Double location, double width) {
+		super(Entity.PLANET, location, new Point2D.Double(0, 0), width, true, false);
 	}
 
 	@Override
-	public void onUpdate() {
+	public void onUpdate(Level level) {
 		direction+= rotation*level.getWorldDeltaTime();
 	}
 
 	@Override
-	public void onRender(Graphics g) {
+	public void onRender(Graphics g, Level level) {
 		// TODO Auto-generated method stub
 		
 	}
